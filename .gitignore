@@ -1,0 +1,7 @@
+build/
+release/
+bin/
+obj/
+*.log
+*.cfg
+*.zip
