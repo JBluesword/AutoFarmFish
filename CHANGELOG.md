@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 - Testing build
+
+- Removed the entire `Pond.Harvest` diagnostic Harmony hook. The 0.1.1 test still produced one IL2CPP trampoline null-reference error per pond, including single-pond harvests with no work-list expansion.
+- Retained `FarmPond.Work` and `Player.PerformWork` diagnostics. The 0.1.1 log showed six successful vanilla work actions, four of which expanded to matching ponds.
+- Requires another in-game test to verify that the red errors are gone.
+
 ## 0.1.1 - Testing build
 
 - Removed the `Pond.Harvest` Harmony finalizer. In the first play test, five successful mass harvests produced 15 IL2CPP trampoline null-reference errors immediately after that hook's exit log, one error per harvested pond.

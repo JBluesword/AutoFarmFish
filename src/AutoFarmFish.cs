@@ -19,8 +19,8 @@ using UnityEngine;
 [assembly: AssemblyProduct("AutoFarmFish")]
 [assembly: AssemblyTitle("AutoFarmFish")]
 [assembly: AssemblyDescription("Mass harvest ready ponds with matching fish using the vanilla work pipeline.")]
-[assembly: AssemblyVersion("0.1.1.0")]
-[assembly: AssemblyFileVersion("0.1.1.0")]
+[assembly: AssemblyVersion("0.1.2.0")]
+[assembly: AssemblyFileVersion("0.1.2.0")]
 
 namespace AutoFarmFish
 {
@@ -29,7 +29,7 @@ namespace AutoFarmFish
     {
         private const string PluginGuid = "autofarmfish";
         private const string PluginName = "AutoFarmFish";
-        private const string PluginVersion = "0.1.1";
+        private const string PluginVersion = "0.1.2";
 
         private Harmony _harmony;
         private GameObject _controlsObject;
@@ -106,7 +106,7 @@ namespace AutoFarmFish
             _debug = Config.Bind("Diagnostics", "EnableDebugLogging", true, "Log selection, pond filtering, work flags, list sizes, and exceptions. Enabled for the first test build.");
             _logEveryPond = Config.Bind("Diagnostics", "LogEveryPond", false, "Log each matching or rejected pond individually. Very noisy on large farms.");
             _logWorkList = Config.Bind("Diagnostics", "LogExpandedWorkListSnapshot", false, "Log every final work-list tile before vanilla Player.PerformWork continues.");
-            _traceVanilla = Config.Bind("Diagnostics", "TraceVanillaFishPipeline", true, "Trace FarmPond.Work and Pond.Harvest calls and exceptions. Enabled for the first test build.");
+            _traceVanilla = Config.Bind("Diagnostics", "TraceVanillaFishPipeline", true, "Trace FarmPond.Work calls and exceptions. Pond.Harvest is intentionally not patched because its IL2CPP trampoline produced errors.");
 
             _enableToggle = Config.Bind("Runtime Toggle", "EnableToggleHotkey", true, "Allow a session-only keyboard toggle.");
             _toggleKey = Config.Bind("Runtime Toggle", "ToggleKey", KeyCode.F7, "F7 toggles AutoFarmFish for the current game session. Change this to control fish separately from the other AutoFarm mods.");
@@ -144,10 +144,6 @@ namespace AutoFarmFish
             {
                 typeof(Player), typeof(bool), typeof(WorkType), typeof(WorkFlags), typeof(FailedAction).MakeByRefType(), typeof(int), typeof(FarmItemDefinition)
             });
-            MethodInfo pondHarvest = AccessTools.Method(typeof(Pond), "Harvest", new[]
-            {
-                typeof(Player), typeof(FarmPond), typeof(FailedAction).MakeByRefType()
-            });
             if (pondWork != null)
             {
                 _harmony.Patch(pondWork,
@@ -157,14 +153,7 @@ namespace AutoFarmFish
                 _log.LogInfo("Patched FarmPond.Work for fish pipeline diagnostics.");
             }
             else _log.LogWarning("FarmPond.Work diagnostic target unavailable.");
-            if (pondHarvest != null)
-            {
-                _harmony.Patch(pondHarvest,
-                    prefix: new HarmonyMethod(AccessTools.Method(typeof(AutoFarmFish), nameof(PondHarvestPrefix))),
-                    postfix: new HarmonyMethod(AccessTools.Method(typeof(AutoFarmFish), nameof(PondHarvestPostfix))));
-                _log.LogInfo("Patched Pond.Harvest entry and result diagnostics (no IL2CPP finalizer).");
-            }
-            else _log.LogWarning("Pond.Harvest diagnostic target unavailable.");
+            _log.LogInfo("Pond.Harvest diagnostic hook disabled; harvest results remain visible through FarmPond.Work and Player.PerformWork.");
         }
 
         private static void PerformWorkPrefix(Player __instance, WorkType work, FarmItemDefinition itemDefinition,
@@ -449,16 +438,6 @@ namespace AutoFarmFish
         {
             if (__exception != null) _log.LogError($"TRACE FarmPond.Work EXCEPTION pond={FishLabel(__instance)}: {__exception}");
             return __exception;
-        }
-
-        private static void PondHarvestPrefix(Pond __instance, FarmPond contents)
-        {
-            Info($"TRACE Pond.Harvest ENTER: pondId={__instance?.Id.ToString() ?? "<null>"}, fish={FishLabel(contents)}, pondTiles={__instance?.Tiles?.Count.ToString() ?? "<null>"}.");
-        }
-
-        private static void PondHarvestPostfix(Pond __instance, bool __result)
-        {
-            Info($"TRACE Pond.Harvest EXIT: pondId={__instance?.Id.ToString() ?? "<null>"}, success={__result}.");
         }
 
         private static void Info(string message) { if (_debug.Value) _log.LogInfo(message); }
