@@ -19,8 +19,8 @@ using UnityEngine;
 [assembly: AssemblyProduct("AutoFarmFish")]
 [assembly: AssemblyTitle("AutoFarmFish")]
 [assembly: AssemblyDescription("Mass harvest ready ponds with matching fish using the vanilla work pipeline.")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyVersion("0.1.1.0")]
+[assembly: AssemblyFileVersion("0.1.1.0")]
 
 namespace AutoFarmFish
 {
@@ -29,7 +29,7 @@ namespace AutoFarmFish
     {
         private const string PluginGuid = "autofarmfish";
         private const string PluginName = "AutoFarmFish";
-        private const string PluginVersion = "0.1.0";
+        private const string PluginVersion = "0.1.1";
 
         private Harmony _harmony;
         private GameObject _controlsObject;
@@ -161,9 +161,8 @@ namespace AutoFarmFish
             {
                 _harmony.Patch(pondHarvest,
                     prefix: new HarmonyMethod(AccessTools.Method(typeof(AutoFarmFish), nameof(PondHarvestPrefix))),
-                    postfix: new HarmonyMethod(AccessTools.Method(typeof(AutoFarmFish), nameof(PondHarvestPostfix))),
-                    finalizer: new HarmonyMethod(AccessTools.Method(typeof(AutoFarmFish), nameof(PondHarvestFinalizer))));
-                _log.LogInfo("Patched Pond.Harvest for vanilla result diagnostics.");
+                    postfix: new HarmonyMethod(AccessTools.Method(typeof(AutoFarmFish), nameof(PondHarvestPostfix))));
+                _log.LogInfo("Patched Pond.Harvest entry and result diagnostics (no IL2CPP finalizer).");
             }
             else _log.LogWarning("Pond.Harvest diagnostic target unavailable.");
         }
@@ -460,12 +459,6 @@ namespace AutoFarmFish
         private static void PondHarvestPostfix(Pond __instance, bool __result)
         {
             Info($"TRACE Pond.Harvest EXIT: pondId={__instance?.Id.ToString() ?? "<null>"}, success={__result}.");
-        }
-
-        private static Exception PondHarvestFinalizer(Exception __exception, Pond __instance)
-        {
-            if (__exception != null) _log.LogError($"TRACE Pond.Harvest EXCEPTION pondId={__instance?.Id.ToString() ?? "<null>"}: {__exception}");
-            return __exception;
         }
 
         private static void Info(string message) { if (_debug.Value) _log.LogInfo(message); }

@@ -2,7 +2,7 @@
 
 AutoFarmFish is a Farm Together 2 BepInEx IL2CPP mod by JBluesword. Harvest a ready pond and the mod adds other ready ponds of the same fish type to the normal game work list. The game still performs each pond harvest, rewards, quests, state changes, and networking.
 
-**Status:** v0.1.0 testing build. It has been compiled against the installed game assemblies but has not yet been verified in-game.
+**Status:** v0.1.1 testing build. The first in-game test confirmed matching pond expansion, but exposed errors in a diagnostic hook. This build removes that hook's finalizer and needs another play test.
 
 ## Installation
 
@@ -62,7 +62,7 @@ For a problem report, include the log from game launch through one test action a
 
 ## Build
 
-From this project folder, run `powershell -ExecutionPolicy Bypass -File .\build.ps1`. Add `-Install` to copy the DLL into the local game plugins folder after a successful build. The script uses the installed game's current BepInEx interop assemblies and creates `release\AutoFarmFish-0.1.0.zip`.
+From this project folder, run `powershell -ExecutionPolicy Bypass -File .\build.ps1`. Add `-Install` to copy the DLL into the local game plugins folder after a successful build. The script uses the installed game's current BepInEx interop assemblies and creates `release\AutoFarmFish-0.1.1.zip`.
 
 ## Shout outs
 
